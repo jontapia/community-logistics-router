@@ -2,7 +2,7 @@
 
 > **AI-powered dispatch tool for food bank operations** — transforms messy volunteer notes and supply logs into structured, actionable logistics tables in seconds.
 
-[![Built with Claude](https://img.shields.io/badge/Powered%20by-Claude%20AI-orange?style=flat-square)](https://anthropic.com)
+[![Built with Claude](https://img.shields.io/badge/Powered%20by-Claude%20AI-orange?style=flat-square)](https://anthropic.com) [![Processed by Claude 3.5 Sonnet | Logic Version 1.1](https://img.shields.io/badge/Processed_by-Claude_3.5_Sonnet-blue?style=flat-square&logo=anthropic)](https://anthropic.com)
 [![Single File App](https://img.shields.io/badge/Architecture-Single%20HTML%20File-blue?style=flat-square)]()
 [![License: MIT](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
 
