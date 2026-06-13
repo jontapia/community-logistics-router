@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Community Logistics Router</title>
+    <style>
+        body { font-family: sans-serif; margin: 20px; line-height: 1.6; }
+        textarea { width: 100%; height: 150px; margin-bottom: 10px; }
+        button { padding: 10px 20px; background-color: #007bff; color: white; border: none; cursor: pointer; }
+        #output { margin-top: 20px; border: 1px solid #ccc; padding: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Community Logistics Router</h1>
+    <textarea id="intake" placeholder="Paste messy volunteer/supply notes here..."></textarea>
+    <br>
+    <button id="processBtn">Process Intake</button>
+    <div id="output"></div>
+
+    <script>
+        document.getElementById('processBtn').addEventListener('click', function() {
+            const intake = document.getElementById('intake').value;
+            const output = document.getElementById('output');
+            
+            // XML wrapping simulation
+            const xmlData = `<raw_intake>${intake}</raw_intake>`;
+            
+            // Simulate processing into a Markdown table
+            output.innerHTML = `<h3>Structured Manifest</h3>
+            <table border="1">
+                <tr><th>Volunteer</th><th>Schedule</th><th>Capacity</th></tr>
+                <tr><td>Example Name</td><td>NOT SPECIFIED</td><td>NOT SPECIFIED</td></tr>
+            </table>
+            <br>
+            <h3>Logistical Risk Flags</h3>
+            <ul><li>Risk: Data parsing incomplete</li></ul>`;
+        });
+    </script>
+</body>
+</html>
