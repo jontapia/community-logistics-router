@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Community Logistics Router — Greenfield Food Bank</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --forest:        #1A3A2A;
+      --forest-mid:    #2C5440;
+      --forest-light:  #3D7055;
+      --parchment:     #F7F4EE;
+      --parchment-dark:#EDE9E0;
+      --amber:         #E8A020;
+      --amber-dark:    #C4841A;
+      --slate:         #4A5568;
+      --slate-light:   #718096;
+      --error:         #C0392B;
+      --risk-bg:       #FFF8F0;
+      --risk-border:   #F0A030;
+      --mono: 'IBM Plex Mono', monospace;
+      --sans: 'Inter', system-ui, sans-serif;
+    }
+
+    html, body { height: 100%; background: var(--forest); color: var(--parchment); font-family: var(--sans); }
+
+    /* ── HEADER ── */
+    header {
+      display: flex; align-items: center; gap: 14px;
+      padding: 18px 32px;
+      background: var(--forest);
+      border-bottom: 1px solid var(--forest-light);
+      position: sticky; top: 0; z-index: 10;
+    }
+    .logo-mark {
+      width: 36px; height: 36px; background: var(--amber);
+      border-radius: 6px; display: flex; align-items: center;
+      justify-content: center; flex-shrink: 0;
+    }
+    .logo-mark svg { display: block; }
+    .header-text h1 {
+      font-size: 15px; font-weight: 700; letter-spacing: 0.04em;
+      text-transform: uppercase; color: var(--parchment);
+    }
+    .header-text p {
+      font-size: 11px; color: var(--forest-light); font-family: var(--mono);
+      margin-top: 1px; letter-spacing: 0.06em; text-transform: uppercase;
+    }
+    .header-badge {
+      margin-left: auto; font-family: var(--mono); font-size: 11px;
+      color: var(--amber); background: rgba(232,160,32,0.12);
+      border: 1px solid rgba(232,160,32,0.3); padding: 4px 10px;
+      border-radius: 4px; letter-spacing: 0.05em;
+    }
+    .sim-pill {
+      font-family: var(--mono); font-size: 10px;
+      color: #7EC8A0; background: rgba(126,200,160,0.1);
+      border: 1px solid rgba(126,200,160,0.3); padding: 3px 8px;
+      border-radius: 4px; letter-spacing: 0.06em; margin-left: 8px;
+    }
+
+    /* ── MAIN LAYOUT ── */
+    main {
+      display: grid; grid-template-columns: 1fr auto 1fr;
+      height: calc(100vh - 73px); min-height: 500px;
+    }
+
+    /* ── PANELS ── */
+    .panel { display: flex; flex-direction: column; overflow: hidden; }
+    .panel-header {
+      display: flex; align-items: center; gap: 8px;
+      padding: 16px 24px 14px;
+      border-bottom: 1px solid rgba(255,255,255,0.06); flex-shrink: 0;
+    }
+    .panel-label { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--slate-light); }
+    .panel-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+    .panel-dot.raw   { background: var(--slate-light); }
+    .panel-dot.clean { background: var(--amber); }
+    .panel-body { flex: 1; overflow: hidden; position: relative; }
+
+    /* ── LEFT PANEL ── */
+    .panel-left { background: #111E17; border-right: 1px solid rgba(255,255,255,0.05); }
+    #raw-notes {
+      width: 100%; height: 100%; background: transparent;
+      border: none; outline: none; resize: none;
+      color: var(--parchment); font-family: var(--mono);
+      font-size: 13px; line-height: 1.7; padding: 20px 24px;
+      caret-color: var(--amber);
+    }
+    #raw-notes::placeholder { color: #3D5448; font-style: italic; }
+    #raw-notes:focus { outline: none; }
+
+    /* ── SPINE ── */
+    .spine {
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; gap: 12px; width: 96px; flex-shrink: 0;
+      background: var(--forest); padding: 24px 0;
+      border-left: 1px solid rgba(255,255,255,0.04);
+      border-right: 1px solid rgba(255,255,255,0.04);
+    }
+    .spine-line {
+      width: 1px; flex: 1;
+      background: linear-gradient(to bottom, transparent, var(--forest-light) 30%, var(--forest-light) 70%, transparent);
+    }
+    #process-btn {
+      width: 56px; height: 56px; border-radius: 50%; border: none;
+      background: var(--amber); color: var(--forest); cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.18s, transform 0.15s, box-shadow 0.18s;
+      flex-shrink: 0;
+    }
+    #process-btn:hover { background: var(--amber-dark); transform: scale(1.07); box-shadow: 0 0 24px rgba(232,160,32,0.35); }
+    #process-btn:active { transform: scale(0.97); }
+    #process-btn svg { display: block; }
+    .btn-label {
+      font-size: 9px; font-weight: 700; letter-spacing: 0.1em;
+      text-transform: uppercase; color: var(--slate-light);
+      text-align: center; line-height: 1.4;
+    }
+
+    /* ── RIGHT PANEL ── */
+    .panel-right { background: var(--parchment); }
+    .panel-right .panel-header { border-bottom-color: rgba(0,0,0,0.08); }
+    .panel-right .panel-label { color: var(--slate); }
+    #output-area { width: 100%; height: 100%; overflow-y: auto; padding: 20px 24px 32px; color: var(--slate); }
+
+    /* Empty state */
+    .empty-state {
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; height: 100%; gap: 12px;
+      opacity: 0.45; user-select: none;
+    }
+    .empty-state p { font-family: var(--mono); font-size: 12px; color: var(--slate); text-align: center; line-height: 1.6; }
+
+    /* ── MARKDOWN RENDERING ── */
+    .md-output { animation: fadeIn 0.35s ease; }
+    @keyframes fadeIn { from { opacity:0; transform: translateY(6px); } to { opacity:1; transform: translateY(0); } }
+
+    .md-output h1, .md-output h2, .md-output h3 {
+      font-family: var(--sans); color: var(--forest);
+      margin-bottom: 10px; margin-top: 22px; font-weight: 700;
+    }
+    .md-output h1 { font-size: 18px; }
+    .md-output h2 { font-size: 15px; border-bottom: 1px solid var(--parchment-dark); padding-bottom: 6px; }
+    .md-output h3 { font-size: 13px; color: var(--forest-mid); }
+
+    .md-output p { font-size: 13px; line-height: 1.7; margin-bottom: 10px; color: var(--slate); }
+
+    .md-output table {
+      width: 100%; border-collapse: collapse;
+      font-size: 12.5px; margin: 14px 0; font-family: var(--mono);
+    }
+    .md-output table thead tr { background: var(--forest); color: var(--parchment); }
+    .md-output table thead th {
+      padding: 9px 12px; text-align: left; font-weight: 600;
+      letter-spacing: 0.05em; font-size: 11px; text-transform: uppercase;
+    }
+    .md-output table tbody tr { border-bottom: 1px solid var(--parchment-dark); }
+    .md-output table tbody tr:nth-child(even) { background: rgba(0,0,0,0.025); }
+    .md-output table tbody td { padding: 8px 12px; color: var(--slate); vertical-align: top; }
+
+    .md-output ul, .md-output ol { padding-left: 20px; margin-bottom: 10px; }
+    .md-output li { font-size: 13px; line-height: 1.7; color: var(--slate); margin-bottom: 3px; }
+    .md-output code { font-family: var(--mono); background: var(--parchment-dark); padding: 1px 5px; border-radius: 3px; font-size: 12px; color: var(--forest); }
+    .md-output strong { color: var(--forest); font-weight: 600; }
+    .md-output em { font-style: italic; color: var(--slate-light); }
+    .md-output hr { border: none; border-top: 1px solid var(--parchment-dark); margin: 18px 0; }
+
+    /* ── RISK FLAGS BLOCK ── */
+    .risk-block {
+      margin-top: 20px;
+      border: 1px solid var(--risk-border);
+      border-radius: 6px;
+      overflow: hidden;
+      animation: fadeIn 0.35s ease 0.1s both;
+    }
+    .risk-block-header {
+      background: var(--risk-border);
+      color: var(--forest);
+      padding: 9px 14px;
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+    .risk-block-body {
+      background: var(--risk-bg);
+      padding: 12px 14px;
+    }
+    .risk-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 7px 0;
+      border-bottom: 1px solid rgba(240,160,48,0.2);
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--slate);
+      line-height: 1.5;
+    }
+    .risk-item:last-child { border-bottom: none; }
+    .risk-tag {
+      flex-shrink: 0;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.07em;
+      padding: 2px 6px;
+      border-radius: 3px;
+      text-transform: uppercase;
+      margin-top: 1px;
+    }
+    .risk-tag.critical { background: #FDECEA; color: #C0392B; border: 1px solid #E88; }
+    .risk-tag.warn     { background: #FFF3CD; color: #856404; border: 1px solid #EDCC65; }
+    .risk-tag.info     { background: #E8F4F8; color: #1A6080; border: 1px solid #8CC8E0; }
+    .risk-xml-label {
+      font-family: var(--mono); font-size: 10px;
+      color: var(--forest-light); margin-bottom: 6px;
+      letter-spacing: 0.05em;
+    }
+
+    /* ── SPINNER ── */
+    .spinner-wrap { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; height: 100%; }
+    .spinner { width: 32px; height: 32px; border: 2.5px solid var(--parchment-dark); border-top-color: var(--forest); border-radius: 50%; animation: spin 0.75s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner-wrap p { font-family: var(--mono); font-size: 12px; color: var(--slate-light); animation: pulse 1.4s ease-in-out infinite; }
+    @keyframes pulse { 0%,100%{opacity:.5} 50%{opacity:1} }
+
+    /* ── COPY BUTTON ── */
+    .output-actions { display: flex; justify-content: flex-end; margin-bottom: 8px; }
+    #copy-btn {
+      display: flex; align-items: center; gap: 5px;
+      background: transparent; border: 1px solid var(--parchment-dark);
+      border-radius: 4px; padding: 5px 10px; font-size: 11px;
+      font-family: var(--sans); font-weight: 500; color: var(--slate);
+      cursor: pointer; transition: background 0.15s, color 0.15s, border-color 0.15s;
+      letter-spacing: 0.03em;
+    }
+    #copy-btn:hover { background: var(--parchment-dark); border-color: var(--slate-light); }
+    #copy-btn.copied { color: var(--forest); border-color: var(--forest-light); background: rgba(61,112,85,0.1); }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 760px) {
+      main { grid-template-columns: 1fr; grid-template-rows: 1fr auto 1fr; height: auto; min-height: calc(100vh - 73px); }
+      .spine { width: 100%; flex-direction: row; height: 72px; padding: 0 24px; }
+      .spine-line { width: auto; height: 1px; flex: 1; background: linear-gradient(to right, transparent, var(--forest-light) 30%, var(--forest-light) 70%, transparent); }
+      .panel { min-height: 300px; }
+      #raw-notes { min-height: 280px; }
+      #output-area { min-height: 300px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .md-output, .risk-block, .spinner, .spinner-wrap p { animation: none; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo-mark">
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+      <path d="M10 2L4 6v8l6 4 6-4V6L10 2z" stroke="#1A3A2A" stroke-width="1.6" stroke-linejoin="round"/>
+      <path d="M10 2v12M4 6l6 4 6-4" stroke="#1A3A2A" stroke-width="1.4" stroke-linejoin="round"/>
+    </svg>
+  </div>
+  <div class="header-text">
+    <h1>Community Logistics Router</h1>
+    <p>Greenfield Food Bank · Dispatch Operations</p>
+  </div>
+  <span class="header-badge">Offline Mode</span>
+  <span class="sim-pill">⚡ LOCAL SIM</span>
+</header>
+
+<main>
+  <!-- LEFT: RAW INTAKE -->
+  <div class="panel panel-left">
+    <div class="panel-header">
+      <span class="panel-dot raw"></span>
+      <span class="panel-label">Raw Volunteer &amp; Supply Notes</span>
+    </div>
+    <div class="panel-body">
+      <textarea id="raw-notes" spellcheck="false" placeholder="Paste messy notes here, e.g.
+
+Maria can drive tuesday 9am-1pm she has a van can carry 400lbs
+Tom - wed + fri mornings only, no car
+pickup from St. Lukes: 80 cans beans 40 jars peanut butter expires oct
+Riverside Community Center needs 60 meal kits by friday EOD
+URGENT: 200 lbs potatoes at warehouse dock 3 need moving before Thursday 6pm
+jenny volunteers saturdays 8-12 has small hatchback
+Eastside Pantry - weekly allocation: rice (50lb) pasta (30lb)"></textarea>
+    </div>
+  </div>
+
+  <!-- CENTRE SPINE -->
+  <div class="spine">
+    <div class="spine-line"></div>
+    <button id="process-btn" title="Process notes locally" aria-label="Process notes">
+      <svg id="btn-icon-arrow" width="22" height="22" viewBox="0 0 22 22" fill="none">
+        <path d="M11 4l7 7-7 7M4 11h14" stroke="#1A3A2A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+    <span class="btn-label">Process<br>Notes</span>
+    <div class="spine-line"></div>
+  </div>
+
+  <!-- RIGHT: OUTPUT -->
+  <div class="panel panel-right">
+    <div class="panel-header">
+      <span class="panel-dot clean"></span>
+      <span class="panel-label">Structured Logistics Output</span>
+    </div>
+    <div class="panel-body">
+      <div id="output-area">
+        <div class="empty-state">
+          <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+            <rect x="4" y="8" width="28" height="20" rx="3" stroke="#4A5568" stroke-width="1.5"/>
+            <path d="M4 14h28" stroke="#4A5568" stroke-width="1.2"/>
+            <path d="M4 20h28M4 26h16" stroke="#4A5568" stroke-width="1" stroke-dasharray="3 2"/>
+          </svg>
+          <p>Paste messy notes on the left,<br>then hit the button to route &amp; structure them.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+'use strict';
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SIMULATION ENGINE
+// Parses raw text locally — no network calls required.
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// ── Pattern libraries ──────────────────────────────────────────────────────────
+
+const DAY_PATTERNS = [
+  { re: /\bmon(?:day)?s?\b/i,       label: 'Monday' },
+  { re: /\btue(?:s(?:day)?)?s?\b/i, label: 'Tuesday' },
+  { re: /\bwed(?:nesday)?s?\b/i,    label: 'Wednesday' },
+  { re: /\bthu(?:rs?(?:day)?)?s?\b/i,label:'Thursday' },
+  { re: /\bfri(?:day)?s?\b/i,       label: 'Friday' },
+  { re: /\bsat(?:urday)?s?\b/i,     label: 'Saturday' },
+  { re: /\bsun(?:day)?s?\b/i,       label: 'Sunday' },
+];
+
+const VEHICLE_PATTERNS = [
+  { re: /\bvan\b/i,           label: 'Van' },
+  { re: /\bsuv\b/i,           label: 'SUV' },
+  { re: /\btruck\b/i,         label: 'Truck' },
+  { re: /\bhatchback\b/i,     label: 'Hatchback' },
+  { re: /\bsedan\b/i,         label: 'Sedan' },
+  { re: /\bbicycle|bike\b/i,  label: 'Bicycle' },
+  { re: /\bcar\b/i,           label: 'Car' },
+  { re: /\bno\s+car\b/i,      label: 'None' },
+];
+
+const UNIT_NORMALIZE = (s) =>
+  s.replace(/\blbs?\b/gi, 'lb')
+   .replace(/\bkilos?\b/gi, 'kg')
+   .replace(/\bpounds?\b/gi, 'lb')
+   .replace(/\bcans?\b/gi, 'cans')
+   .replace(/\bjars?\b/gi, 'jars')
+   .replace(/\bboxes\b/gi, 'boxes')
+   .replace(/\bkits?\b/gi, 'kits');
+
+// ── Helpers ────────────────────────────────────────────────────────────────────
+
+function NS() { return '—'; } // NOT SPECIFIED sentinel
+
+function extractDays(text) {
+  const days = DAY_PATTERNS.filter(p => p.re.test(text)).map(p => p.label);
+  if (/\bweekday/i.test(text))  return 'Mon–Fri';
+  if (/\bweekend/i.test(text))  return 'Sat–Sun';
+  if (/\bever(y\s+day|yday)|\bdaily\b|all\s+days?/i.test(text)) return 'Daily';
+  return days.length ? days.join(', ') : NS();
+}
+
+function extractTime(text) {
+  // e.g. "9am-1pm", "8:00-12:00", "mornings", "afternoons", "EOD"
+  const range = text.match(/(\d{1,2}(?::\d{2})?\s*(?:am|pm)?)\s*[-–to]+\s*(\d{1,2}(?::\d{2})?\s*(?:am|pm)?)/i);
+  if (range) return `${range[1].trim()}–${range[2].trim()}`;
+  if (/\beod\b/i.test(text))       return 'EOD';
+  if (/\bmorning/i.test(text))     return 'Morning';
+  if (/\bafternoon/i.test(text))   return 'Afternoon';
+  if (/\beverning/i.test(text))    return 'Evening';
+  if (/\ball\s*day/i.test(text))   return 'All day';
+  return NS();
+}
+
+function extractVehicle(text) {
+  if (/no\s+car\b/i.test(text)) return 'None';
+  const v = VEHICLE_PATTERNS.find(p => p.re.test(text));
+  return v ? v.label : NS();
+}
+
+function extractCapacity(text) {
+  // "400lbs", "300 lb", "50kg", "carries up to 200"
+  const m = text.match(/(\d+(?:\s*[-–to]+\s*\d+)?)\s*(lbs?|kg|pounds?)/i);
+  if (m) return UNIT_NORMALIZE(m[0].replace(/\s+/g,' '));
+  const m2 = text.match(/carry(?:ing)?\s+(?:up\s+to\s+)?(\d+)/i);
+  if (m2) return m2[1] + ' lb';
+  return NS();
+}
+
+function extractQuantity(text) {
+  // "80 cans", "60 meal kits", "200 lbs potatoes"
+  const m = text.match(/(\d+(?:\s*[-–]\s*\d+)?)\s*(lb|lbs|kg|cans?|jars?|boxes|kits?|bags?|units?|meals?|packs?)?/i);
+  if (m && m[0].trim()) return UNIT_NORMALIZE(m[0].trim());
+  return NS();
+}
+
+function extractDeadline(text) {
+  const dayMatch = text.match(/\b(monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b/i);
+  if (/\btoday\b/i.test(text))   return 'Today';
+  if (/\btomorrow\b/i.test(text)) return 'Tomorrow';
+  if (/\basap\b/i.test(text))    return 'ASAP';
+  if (/\beod\b/i.test(text))     return 'EOD ' + (dayMatch ? dayMatch[1] : 'today');
+  if (/\bthis\s+week\b/i.test(text)) return 'This week';
+  if (/\bweekly\b/i.test(text))  return 'Weekly (recurring)';
+  if (dayMatch) {
+    const time = text.match(/(\d{1,2}(?::\d{2})?\s*(?:am|pm)?)\s*$/i);
+    return time ? `${dayMatch[1]} ${time[1]}` : dayMatch[1];
+  }
+  return NS();
+}
+
+function isUrgent(text) {
+  return /\burgent|asap|immediately|right\s+away|today|b4\s+\w+|before\s+\w+day/i.test(text);
+}
+function isSoon(text) {
+  return /\bsoon\b|\bthis\s+week\b|\beod\b|\bfriday\b|\bthursday\b/i.test(text);
+}
+function priorityFlag(text) {
+  if (isUrgent(text)) return '🔴 URGENT';
+  if (isSoon(text))   return '🟡 SOON';
+  return '—';
+}
+
+// Proper-name heuristic: capitalised word(s) not matching known keywords
+const NON_NAME_WORDS = new Set([
+  'urgent','pickup','delivery','please','note','notes','also','just','call','text',
+  'monday','tuesday','wednesday','thursday','friday','saturday','sunday','weekly',
+  'the','and','for','has','can','from','with','into','need','only','very','all',
+  'check','also','plus','both','east','west','north','south','community','center',
+  'centre','church','pantry','warehouse','dock','loading','freezer','unit',
+]);
+
+function extractName(text) {
+  // "volunteer: NAME", "Name -", "Name can", "Name volunteers"
+  const explicit = text.match(/(?:volunteer[:\s]+|coordinator[:\s]+)([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)/);
+  if (explicit) return explicit[1];
+  const candidate = text.match(/^([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)\s*[-–:,]/);
+  if (candidate && !NON_NAME_WORDS.has(candidate[1].toLowerCase())) return candidate[1];
+  const anyName = text.match(/\b([A-Z][a-z]{2,})\b/g);
+  if (anyName) {
+    const filtered = anyName.filter(n => !NON_NAME_WORDS.has(n.toLowerCase()));
+    if (filtered.length) return filtered[0];
+  }
+  return NS();
+}
+
+function extractLocation(text) {
+  // "from X", "at X", "St. X", named places
+  const m = text.match(/(?:from|at|pickup\s+(?:from)?|source[:\s]+)\s+([A-Z][A-Za-z\s'.]{2,30}?)(?:\s*[-–:,]|$)/i);
+  if (m) return m[1].trim();
+  const place = text.match(/\b(St\.\s*\w+|[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*\s+(?:Center|Centre|Church|Pantry|Warehouse|Dock|Depot|Community|Food\s+Bank))\b/i);
+  if (place) return place[1];
+  return NS();
+}
+
+function extractItem(text) {
+  // Common food items
+  const items = [];
+  const FOODS = [
+    'beans','rice','pasta','potatoes','peanut butter','meal kit','meal kits',
+    'canned goods','produce','turkey','turkeys','bread','cereal','soup',
+    'baby food','formula','juice','water','hygiene','toiletries','diapers',
+    'family box','family boxes','food box','mixed produce',
+  ];
+  FOODS.forEach(f => { if (new RegExp('\\b' + f + '\\b', 'i').test(text)) items.push(f); });
+  if (items.length) return items.map(i => i.charAt(0).toUpperCase() + i.slice(1)).join(', ');
+  // Fall back to noun after quantity
+  const m = text.match(/\d+\s*(?:lbs?|kg|cans?|jars?|boxes|kits?)?\s+(?:of\s+)?([a-z][a-z\s]{2,20}?)(?:\s+(?:from|at|by|to|need|needs)\b|[,.]|$)/i);
+  if (m) return m[1].trim().charAt(0).toUpperCase() + m[1].trim().slice(1);
+  return NS();
+}
+
+// ── Line classifier ────────────────────────────────────────────────────────────
+
+function classifyLine(line) {
+  const l = line.toLowerCase();
+  const hasVolWord  = /\bvolunteer|can drive|available|days?:|mornings?|afternoons?\b/.test(l);
+  const hasPickup   = /\bpickup|collect|from\b.{0,40}\b(beans|rice|pasta|cans?|jars?|produce|potatoes|turkey|bread)\b|expires?|expir/i.test(line);
+  const hasDelivery = /\bdeliver|needs?\s+\d|needs?\s+meal|needs?\s+kit|allocation|send\s+\d|wants?\s+\d/i.test(line);
+  const hasName     = /^[A-Z][a-z]+\s*[-–:]/.test(line) || /\bvolunteer[:\s]/i.test(line);
+
+  // If it contains a person-like name AND day/vehicle patterns → volunteer
+  const dayFound    = DAY_PATTERNS.some(p => p.re.test(line));
+  const vehicleFound= VEHICLE_PATTERNS.some(p => p.re.test(line));
+
+  if ((hasName || hasVolWord) && (dayFound || vehicleFound)) return 'volunteer';
+  if (hasPickup) return 'pickup';
+  if (hasDelivery) return 'delivery';
+  if (hasVolWord && hasName) return 'volunteer';
+  if (dayFound && vehicleFound) return 'volunteer';
+  if (/\bfreezer|expir|spoil|check\s+stock/i.test(line)) return 'action';
+  if (/\bdriver\s+needed|someone\s+needs?\s+to\b/i.test(line)) return 'action';
+  return 'unknown';
+}
+
+// ── Risk flag engine ───────────────────────────────────────────────────────────
+
+function detectRisks(lines, volunteers, pickups, deliveries) {
+  const risks = [];
+
+  // 1. Delivery with no matching volunteer capacity
+  deliveries.forEach(d => {
+    const qty = parseInt((d.quantity || '').replace(/\D/g,'')) || 0;
+    if (qty > 300) {
+      const heavyVols = volunteers.filter(v => {
+        const cap = parseInt((v.capacity || '').replace(/\D/g,'')) || 0;
+        return cap >= qty;
+      });
+      if (heavyVols.length === 0) {
+        risks.push({ level:'critical', text: `Delivery to ${d.recipient} requires ${d.quantity} but no volunteer with sufficient capacity is on record.` });
+      }
+    }
+  });
+
+  // 2. URGENT pickups with no assigned driver
+  pickups.filter(p => p.priority === '🔴 URGENT').forEach(p => {
+    risks.push({ level:'critical', text: `Pickup — ${p.item} (${p.quantity}) from ${p.source} is URGENT but has no assigned driver.` });
+  });
+
+  // 3. Volunteers with no car covering delivery days
+  const noCar = volunteers.filter(v => v.transport === 'None' || v.transport === 'Bicycle');
+  if (noCar.length > 0) {
+    risks.push({ level:'warn', text: `${noCar.map(v=>v.name).join(', ')} have no motor vehicle — only suitable for on-foot/bike tasks. Verify route assignments.` });
+  }
+
+  // 4. Missing quantities on deliveries
+  deliveries.filter(d => d.quantity === NS()).forEach(d => {
+    risks.push({ level:'warn', text: `Delivery to ${d.recipient}: quantity is NOT SPECIFIED — confirm before dispatch.` });
+  });
+
+  // 5. Supply with conflicting or missing expiry
+  pickups.filter(p => /conflict|or\b/i.test(p.deadline)).forEach(p => {
+    risks.push({ level:'warn', text: `Expiry date for ${p.item} at ${p.source} is ambiguous — verify before scheduling pickup.` });
+  });
+
+  // 6. No volunteers on record for a delivery day
+  const urgentDays = ['Friday','Thursday','Today','Tomorrow','ASAP'];
+  deliveries.filter(d => urgentDays.includes(d.deadline)).forEach(d => {
+    const coveredDays = volunteers.flatMap(v => (v.days || '').split(/,\s*/));
+    if (!coveredDays.some(day => d.deadline.toLowerCase().includes(day.toLowerCase()))) {
+      risks.push({ level:'warn', text: `Deadline day "${d.deadline}" for ${d.recipient} has no volunteer currently rostered — check coverage.` });
+    }
+  });
+
+  // 7. Generic missing data sweep
+  const missingCap = volunteers.filter(v => v.capacity === NS());
+  if (missingCap.length) {
+    risks.push({ level:'info', text: `Capacity unknown for: ${missingCap.map(v=>v.name).join(', ')} — collect vehicle load info before assigning heavy routes.` });
+  }
+
+  const missingSource = pickups.filter(p => p.source === NS());
+  if (missingSource.length) {
+    risks.push({ level:'info', text: `${missingSource.length} pickup(s) have no source location specified — confirm address before dispatch.` });
+  }
+
+  // De-duplicate
+  const seen = new Set();
+  return risks.filter(r => {
+    const key = r.level + r.text.slice(0,40);
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+// ── Main parser ────────────────────────────────────────────────────────────────
+
+function parseNotes(raw) {
+  const lines = raw.split(/\n+/).map(l => l.trim()).filter(Boolean);
+
+  const volunteers = [];
+  const pickups    = [];
+  const deliveries = [];
+  const actions    = [];
+
+  lines.forEach(line => {
+    const type = classifyLine(line);
+
+    if (type === 'volunteer') {
+      volunteers.push({
+        name:      extractName(line),
+        days:      extractDays(line),
+        time:      extractTime(line),
+        transport: extractVehicle(line),
+        capacity:  extractCapacity(line),
+        notes:     [
+          /\bbad back\b/i.test(line)    ? 'Light duty only (bad back)' : '',
+          /\bno\s+fri/i.test(line)      ? 'Not available Fridays' : '',
+          /\bcall\b.{0,10}\bdon.t\s+text\b/i.test(line) ? 'Call, do not text' : '',
+          /\bretired\b/i.test(line)     ? 'Retired — very flexible' : '',
+          /coordinator/i.test(line)     ? 'Also coordinator' : '',
+        ].filter(Boolean).join('; ') || '—',
+      });
+    }
+
+    else if (type === 'pickup') {
+      pickups.push({
+        item:     extractItem(line),
+        quantity: extractQuantity(line),
+        source:   extractLocation(line),
+        deadline: extractDeadline(line),
+        priority: priorityFlag(line),
+        notes:    isUrgent(line) ? '🔴 Needs immediate driver assignment' :
+                  /expir/i.test(line) ? '⚠ Check expiry before moving' : '—',
+      });
+    }
+
+    else if (type === 'delivery') {
+      // extract recipient
+      const recipientMatch = line.match(/^([A-Za-z][\w\s'.]+?)\s+(?:needs?|wants?|require|allocation)/i)
+                          || line.match(/(?:deliver(?:y)?\s+to\s+|send\s+to\s+)([A-Za-z][\w\s'.]+?)(?:\s*[-–:]|$)/i);
+      deliveries.push({
+        recipient: recipientMatch ? recipientMatch[1].trim() : extractLocation(line),
+        item:      extractItem(line),
+        quantity:  extractQuantity(line),
+        deadline:  extractDeadline(line),
+        priority:  priorityFlag(line),
+        notes:     isUrgent(line) ? '🔴 Confirm driver now' : '—',
+      });
+    }
+
+    else if (type === 'action') {
+      actions.push({
+        priority: priorityFlag(line),
+        task:     line.length > 80 ? line.slice(0, 77) + '…' : line,
+        assigned: NS(),
+        deadline: extractDeadline(line),
+        status:   'Open',
+      });
+    }
+  });
+
+  // Auto-generate action items from urgent pickups/deliveries if not already captured
+  pickups.filter(p => p.priority === '🔴 URGENT').forEach(p => {
+    actions.push({
+      priority: '🔴 URGENT',
+      task: `Assign driver for pickup: ${p.item} from ${p.source}`,
+      assigned: NS(),
+      deadline: p.deadline,
+      status: 'Open',
+    });
+  });
+
+  deliveries.filter(d => d.priority === '🔴 URGENT').forEach(d => {
+    actions.push({
+      priority: '🔴 URGENT',
+      task: `Confirm delivery: ${d.quantity} ${d.item} → ${d.recipient}`,
+      assigned: NS(),
+      deadline: d.deadline,
+      status: 'Open',
+    });
+  });
+
+  // De-duplicate actions
+  const seen = new Set();
+  const uniqueActions = actions.filter(a => {
+    const k = a.task.slice(0, 50);
+    if (seen.has(k)) return false;
+    seen.add(k); return true;
+  });
+
+  const risks = detectRisks(lines, volunteers, pickups, deliveries);
+
+  return { volunteers, pickups, deliveries, actions: uniqueActions, risks };
+}
+
+// ── Markdown builder ───────────────────────────────────────────────────────────
+
+function buildMarkdown({ volunteers, pickups, deliveries, actions }) {
+  const row = (...cells) => '| ' + cells.join(' | ') + ' |';
+  const sep = (n) => '|' + Array(n).fill('---|').join('');
+
+  let md = '';
+
+  // 1. Volunteer Availability
+  md += '## 1. Volunteer Availability\n\n';
+  if (volunteers.length) {
+    md += row('Name','Available Days','Time Window','Transport','Capacity','Notes') + '\n';
+    md += sep(6) + '\n';
+    volunteers.forEach(v => {
+      md += row(v.name, v.days, v.time, v.transport, v.capacity, v.notes) + '\n';
+    });
+  } else {
+    md += '_No volunteer data detected._\n';
+  }
+
+  // 2. Supply Pickups
+  md += '\n## 2. Supply Pickups\n\n';
+  if (pickups.length) {
+    md += row('Item','Quantity','Source Location','Deadline / Expiry','Priority','Notes') + '\n';
+    md += sep(6) + '\n';
+    pickups.forEach(p => {
+      md += row(p.item, p.quantity, p.source, p.deadline, p.priority, p.notes) + '\n';
+    });
+  } else {
+    md += '_No pickup data detected._\n';
+  }
+
+  // 3. Delivery Requirements
+  md += '\n## 3. Delivery Requirements\n\n';
+  if (deliveries.length) {
+    md += row('Recipient Organisation','Items Needed','Quantity','Deadline','Priority','Notes') + '\n';
+    md += sep(6) + '\n';
+    deliveries.forEach(d => {
+      md += row(d.recipient, d.item, d.quantity, d.deadline, d.priority, d.notes) + '\n';
+    });
+  } else {
+    md += '_No delivery requirement data detected._\n';
+  }
+
+  // 4. Action Items
+  md += '\n## 4. Action Items\n\n';
+  if (actions.length) {
+    md += row('Priority','Task','Assigned To','Deadline','Status') + '\n';
+    md += sep(5) + '\n';
+    actions.forEach(a => {
+      md += row(a.priority, a.task, a.assigned, a.deadline, a.status) + '\n';
+    });
+  } else {
+    md += '_No actionable items extracted._\n';
+  }
+
+  // 5. Summary
+  const totalItems = volunteers.length + pickups.length + deliveries.length;
+  const urgentCount = [...pickups, ...deliveries].filter(x => x.priority === '🔴 URGENT').length;
+  md += `\n## Summary\n\n`;
+  md += `Parsed **${totalItems}** logistics records from your notes: `;
+  md += `${volunteers.length} volunteer(s), ${pickups.length} pickup(s), ${deliveries.length} delivery requirement(s). `;
+  if (urgentCount) md += `**${urgentCount} item(s) are flagged 🔴 URGENT** and require immediate driver assignment. `;
+  const missingFields = [
+    ...volunteers.filter(v => v.capacity === '—').map(v => `${v.name}'s capacity`),
+    ...pickups.filter(p => p.source === '—').map(p => `${p.item} source location`),
+    ...deliveries.filter(d => d.quantity === '—').map(d => `${d.recipient} quantity`),
+  ];
+  if (missingFields.length) {
+    md += `Fields marked **—** require follow-up: ${missingFields.slice(0,3).join(', ')}${missingFields.length > 3 ? ' and more' : ''}. `;
+  }
+  md += `Review the Logistical Risk Flags section below for prioritised action recommendations.`;
+
+  return md;
+}
+
+// ── Risk flags HTML builder ────────────────────────────────────────────────────
+
+function buildRiskHTML(risks) {
+  if (!risks.length) return '';
+  const levelLabel = { critical: 'Critical', warn: 'Warning', info: 'Info' };
+  const items = risks.map(r =>
+    `<div class="risk-item">
+       <span class="risk-tag ${r.level}">${levelLabel[r.level]}</span>
+       <span>${escapeHtml(r.text)}</span>
+     </div>`
+  ).join('');
+
+  return `
+    <div class="risk-block">
+      <div class="risk-block-header">
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
+          <path d="M8 1L1 14h14L8 1z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+          <path d="M8 6v4M8 11.5v.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        &lt;logistical_risk_flags&gt;
+      </div>
+      <div class="risk-block-body">
+        <div class="risk-xml-label">// ${risks.length} issue(s) detected · resolve before dispatch</div>
+        ${items}
+      </div>
+    </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// MARKDOWN RENDERER
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function renderMarkdown(md) {
+  const lines = md.split('\n');
+  let html = '', i = 0;
+
+  while (i < lines.length) {
+    const line = lines[i];
+
+    const hm = line.match(/^(#{1,3})\s+(.+)/);
+    if (hm) { html += `<h${hm[1].length}>${fmt(hm[2])}</h${hm[1].length}>`; i++; continue; }
+
+    if (/^---+$/.test(line.trim())) { html += '<hr>'; i++; continue; }
+
+    if (line.startsWith('|') && i + 1 < lines.length && /^\|[-| :]+\|/.test(lines[i+1])) {
+      const headers = splitRow(line);
+      i += 2;
+      const rows = [];
+      while (i < lines.length && lines[i].startsWith('|')) { rows.push(splitRow(lines[i])); i++; }
+      html += '<table><thead><tr>' + headers.map(h => `<th>${fmt(h)}</th>`).join('') + '</tr></thead><tbody>';
+      rows.forEach(r => { html += '<tr>' + r.map(c => `<td>${fmt(c)}</td>`).join('') + '</tr>'; });
+      html += '</tbody></table>';
+      continue;
+    }
+
+    if (/^[-*]\s/.test(line)) {
+      html += '<ul>';
+      while (i < lines.length && /^[-*]\s/.test(lines[i])) { html += `<li>${fmt(lines[i].replace(/^[-*]\s/,''))}</li>`; i++; }
+      html += '</ul>'; continue;
+    }
+
+    if (line.trim() === '') { i++; continue; }
+    html += `<p>${fmt(line)}</p>`; i++;
+  }
+  return html;
+}
+
+function splitRow(line) { return line.split('|').slice(1,-1).map(c => c.trim()); }
+
+function fmt(text) {
+  return text
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/`([^`]+)`/g,'<code>$1</code>')
+    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g,'<em>$1</em>');
+}
+
+function escapeHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// UI CONTROLLER
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const textarea   = document.getElementById('raw-notes');
+const processBtn = document.getElementById('process-btn');
+const outputArea = document.getElementById('output-area');
+
+let rawMarkdown = '';
+
+function showEmpty() {
+  outputArea.innerHTML = `
+    <div class="empty-state">
+      <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+        <rect x="4" y="8" width="28" height="20" rx="3" stroke="#4A5568" stroke-width="1.5"/>
+        <path d="M4 14h28" stroke="#4A5568" stroke-width="1.2"/>
+        <path d="M4 20h28M4 26h16" stroke="#4A5568" stroke-width="1" stroke-dasharray="3 2"/>
+      </svg>
+      <p>Paste messy notes on the left,<br>then hit the button to route &amp; structure them.</p>
+    </div>`;
+}
+
+function renderOutput(markdown, riskHTML) {
+  rawMarkdown = markdown;
+  const mdHTML = renderMarkdown(markdown);
+  outputArea.innerHTML = `
+    <div class="output-actions">
+      <button id="copy-btn" title="Copy Markdown to clipboard">
+        <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
+          <rect x="4" y="4" width="9" height="9" rx="1.5" stroke="currentColor" stroke-width="1.4"/>
+          <path d="M2 10V2h8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+        </svg>
+        Copy Markdown
+      </button>
+    </div>
+    <div class="md-output">${mdHTML}</div>
+    ${riskHTML}`;
+  document.getElementById('copy-btn').addEventListener('click', copyMarkdown);
+}
+
+async function copyMarkdown() {
+  try {
+    await navigator.clipboard.writeText(rawMarkdown);
+    const btn = document.getElementById('copy-btn');
+    btn.textContent = '✓ Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 14 14" fill="none"><rect x="4" y="4" width="9" height="9" rx="1.5" stroke="currentColor" stroke-width="1.4"/><path d="M2 10V2h8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg> Copy Markdown`;
+      btn.classList.remove('copied');
+    }, 2000);
+  } catch { /* silently fail */ }
+}
+
+// Simulated typing effect — renders word-by-word for visual feedback
+function simulateStream(markdown, riskHTML) {
+  const words = markdown.split(/(\s+)/);
+  let i = 0, accumulated = '';
+
+  function tick() {
+    if (i >= words.length) {
+      renderOutput(markdown, riskHTML); // final clean render
+      processBtn.disabled = false;
+      return;
+    }
+    // render every N words for performance
+    const chunk = Math.min(6, words.length - i);
+    for (let c = 0; c < chunk; c++) accumulated += words[i++] || '';
+    renderOutput(accumulated, ''); // stream body first
+    requestAnimationFrame(tick);
+  }
+
+  requestAnimationFrame(tick);
+}
+
+function processNotes() {
+  const raw = textarea.value.trim();
+  if (!raw) {
+    textarea.focus();
+    textarea.style.boxShadow = 'inset 0 0 0 1px var(--amber)';
+    setTimeout(() => textarea.style.boxShadow = '', 1200);
+    return;
+  }
+
+  // Show spinner briefly for UX rhythm
+  outputArea.innerHTML = `
+    <div class="spinner-wrap">
+      <div class="spinner"></div>
+      <p>Routing logistics data…</p>
+    </div>`;
+  processBtn.disabled = true;
+
+  setTimeout(() => {
+    const parsed   = parseNotes(raw);
+    const markdown = buildMarkdown(parsed);
+    const riskHTML = buildRiskHTML(parsed.risks);
+    simulateStream(markdown, riskHTML);
+  }, 420); // brief delay so the spinner is visible
+}
+
+processBtn.addEventListener('click', processNotes);
+textarea.addEventListener('keydown', e => {
+  if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') { e.preventDefault(); processNotes(); }
+});
+</script>
+</body>
+</html>
